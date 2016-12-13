@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        #startdiv{
+            width: 320px;
+            height: 568px;
+            background: url(image/开始背景.png) no-repeat;
+        }
+        #content{
+            width: 320px;
+            height: 568px;
+            position: absolute;
+            top: 0px;
+            left: 500px;
+        }
+        #btstart{
+            width: 150px;
+            height: 30px;
+            background: burlywood;
+            border-radius: 30px;
+            position: absolute;
+            top:450px;
+            left:80px;
+        }
+        #maindiv{
+            width: 320px;
+            height:568px;
+            background: url(image/background_1.png);
+            position:absolute;
+            top: 0;
+            left: 0;
+            display: none;
+			overflow:hidden;
+        }
+		#score{position:absolute;left:520px;top:20px;}
+		#godtime{position:absolute;left:520px;top:50px;}
+		#btover{position:absolute;display:none;
+				 top:450px;left:580px;width: 150px;height: 30px;
+            background: burlywood;border-radius: 30px;
+		}
+		#btagain{position:absolute;display:none;
+				 top:400px;left:580px;width: 150px;height: 30px;
+            background: burlywood;border-radius: 30px;
+		}
+		#maxscore{position:absolute;left:680px;top:20px;}
+    </style>
+	<script>
+		window.onload=function(){
+			var startDiv=document.getElementById("startdiv");
+			var btnstart=document.getElementById("btstart");
+			var mainDiv=document.getElementById("maindiv");
+			var content=document.getElementById("content");
+			var btover=document.getElementById("btover");
+			var btagain=document.getElementById("btagain");
+			var maxscore=document.getElementById("maxscore");
+			var oscore=document.getElementById("score").getElementsByTagName("span")[0];
+			var omaxscore=document.getElementById("maxscore").getElementsByTagName("span")[0];
+			var ogodtime=document.getElementById("godtime").getElementsByTagName("span")[0];
+			var myplen;
+			var zidan;
+			var dicount=0;
+			var arrZidan=[];
+			var arrzidan1=[];
+			var arrzidan3=[];
+			var arrdiplne=[];
+			var dispeed=5;
+			var score=0;
+			var god=false;
+			var godtime=0;
+			var expmyplen=null;
+			var timer = null;
+			var myisB = false;
+			var isPause=false;
+			var arrProp=[];
+			var zidan33=false;
+			var zidan333=false;
+			var zidanNum=0;
+			
+			
+			var maxScore=getcookie()||0;
+			omaxscore.innerHTML=maxScore;
+			//重新开始游戏
+			btagain.onclick=function(){
+				score=0;
+				if(zidan33){
+					zidan33=false;
+				}
+				if(zidan333){
+					zidan333=false;
+				}
+				omaxscore.innerHTML=maxScore;
+				myisB=false;
+				btover.style.display="none";
+				btagain.style.display="none";
+				for(var i=0;i<arrZidan.length;i++){
+					mainDiv.removeChild(arrZidan[i]);
+				}
+				arrZidan=[];
+				for(var i=0;i<arrdiplne.length;i++){
+					mainDiv.removeChild(arrdiplne[i]);
+				}
+				arrdiplne=[];
+				for(var i=0;i<arrProp.length;i++){
+					arrProp[i].remove();
+				}
+				arrProp=[];
+				myplen.remove();
+				btnstart.onclick();
+				
+			}
+			//键盘控制飞机
+			document.onkeydown=function(e){
+				if(e.keyCode==13){
+						isPause=!isPause;
+				}
+				if(!myisB&&!isPause){
+					if(e.keyCode==37){
+						myplen.style.left=myplen.offsetLeft-10+"px";
+					}
+					if(e.keyCode==39){
+						myplen.style.left=myplen.offsetLeft+10+"px";
+					}
+					if(e.keyCode==38){
+						myplen.style.top=myplen.offsetTop-10+"px";
+					}
+					if(e.keyCode==40){
+						myplen.style.top=myplen.offsetTop+10+"px";
+					}
+				}
+			}
+			//开始游戏按钮
+			btnstart.onclick=function(){
+
+				if(!isPause){
+					startDiv.style.display="none";
+					mainDiv.style.display="block";
+					//创建我的飞机
+					createMyplne();
+					//移动我的飞机
+					moveMyplne();
+					//起飞
+					fly();
+				}
+
+				myplen.onclick=function(){
+					isPause=!isPause;
+					
+				}
+				
+			}
+			//创建我的飞机
+			function createMyplne(){
+				myplen=document.createElement("img");
+				myplen.src="image/我的飞机.gif";
+				myplen.style.position="absolute";
+				myplen.style.top=mainDiv.offsetHeight-80+"px";
+				myplen.style.zIndex=100;
+				myplen.style.left=mainDiv.offsetWidth/2-33+"px";
+				mainDiv.appendChild(myplen);
+			}
+			//移动我的飞机
+			function moveMyplne(){
+				document.onmousemove=function(e){
+					if(!isPause){
+					
+						var e = e || event;
+						var _top = e.clientY-content.offsetTop-myplen.offsetHeight/2;
+						var _left = e.clientX-content.offsetLeft-myplen.offsetWidth/2;
+						if(_top<0){
+							_top=0;
+						}
+						if(_top>mainDiv.offsetHeight-80){
+							_top = mainDiv.offsetHeight-80;
+						}
+						if(_left<-33){
+							_left = -33;
+						}
+						if(_left>mainDiv.offsetWidth-33){
+							_left = mainDiv.offsetWidth-33;
+						}
+						myplen.style.top = _top+"px";
+						myplen.style.left = _left+"px";
+					}
+				}
+			}
+			//创建敌方飞机方法一
+			function creatediplen1(){
+				dicount++;
+				if(dicount%20==0){
+					//创建大飞机
+					diplen = document.createElement("img");
+					diplen.src="image/enemy2_fly_1.png";
+					diplen.style.position="absolute";
+					diplen.style.top=-164+"px";
+					diplen.style.left=Math.floor(Math.random()*210)+"px";
+					mainDiv.appendChild(diplen);
+					arrdiplne.push(diplen);
+				}else if(dicount%10==0){
+					//创建中飞机
+					diplen = document.createElement("img");
+					diplen.src="image/enemy3_fly_1.png";
+					diplen.style.position="absolute";
+					diplen.style.top=-60+"px";
+					diplen.style.left=Math.floor(Math.random()*274)+"px";
+					mainDiv.appendChild(diplen);
+					arrdiplne.push(diplen);
+				}else{
+					//创建小飞机
+					diplen = document.createElement("img");
+					diplen.src="image/enemy1_fly_1.png";
+					diplen.style.position="absolute";
+					diplen.style.top=-24+"px";
+					diplen.style.left=Math.floor(Math.random()*286)+"px";
+					mainDiv.appendChild(diplen);
+					arrdiplne.push(diplen);
+				}
+				
+			}
+			//创建敌方飞机方法二 大中小随机出现
+			function creatediplen2(){
+				var count = Math.floor(Math.random()*100);
+				if(count>0&&count<=10){
+					//创建大飞机
+					diplen = document.createElement("img");
+					diplen.src="image/enemy2_fly_1.png";
+					diplen.style.position="absolute";
+					diplen.style.top=-164+"px";
+					diplen.style.left=Math.floor(Math.random()*210)+"px";
+					mainDiv.appendChild(diplen);
+					diplen.prop=Math.round(Math.random()*100);
+					diplen.life=7;
+					diplen.jifen=100;
+					diplen.isB=false;
+					diplen.Btime=20;
+					diplen.asrc="image/大飞机挨打.png";
+					diplen.bsrc="image/大飞机爆炸.gif";
+					arrdiplne.push(diplen);
+					
+				}else if(count>10&&count<=30){
+					//创建中飞机
+					diplen = document.createElement("img");
+					diplen.src="image/enemy3_fly_1.png";
+					diplen.style.position="absolute";
+					diplen.style.top=-60+"px";
+					diplen.style.left=Math.floor(Math.random()*274)+"px";
+					mainDiv.appendChild(diplen);
+					diplen.life=5;
+					diplen.jifen=40;
+					diplen.isB=false;
+					diplen.Btime=20;
+					diplen.asrc="image/中飞机挨打.png";
+					diplen.bsrc="image/中飞机爆炸.gif";
+					arrdiplne.push(diplen);
+					
+					
+				}else{
+					//创建小飞机
+					diplen = document.createElement("img");
+					diplen.src="image/enemy1_fly_1.png";
+					diplen.style.position="absolute";
+					diplen.style.top=-24+"px";
+					diplen.style.left=Math.floor(Math.random()*286)+"px";
+					mainDiv.appendChild(diplen);
+					diplen.life=1;
+					diplen.jifen=20;
+					diplen.isB=false;
+					diplen.Btime=20;
+					diplen.asrc="image/小飞机爆炸.gif";
+					diplen.bsrc="image/小飞机爆炸.gif";
+					arrdiplne.push(diplen);
+
+				}
+			}
+			//敌方飞机起飞
+			function difly(){
+				for(var i=0;i<arrdiplne.length;i++){
+					if(!arrdiplne[i].isB){
+						arrdiplne[i].style.top = arrdiplne[i].offsetTop+dispeed+"px";
+						if(arrdiplne[i].offsetTop>mainDiv.offsetHeight){
+							mainDiv.removeChild(arrdiplne[i]);
+							arrdiplne.splice(i,1);
+							i--;
+						}
+					
+					}else{
+						arrdiplne[i].Btime--;
+						score+=arrdiplne[i].jifen;
+						if(arrdiplne[i].Btime<=0){
+							if(arrdiplne[i].prop<=10){
+								var	prop = document.createElement("div");
+								prop.style.position="absolute";
+								prop.style.background="red";
+								prop.style.fontSize="12px";
+								prop.type=1;
+								prop.style.left=arrdiplne[i].offsetLeft+arrdiplne[i].offsetWidth/2+"px";
+								prop.style.top=arrdiplne[i].offsetTop+arrdiplne[i].offsetHeight/2+"px";
+								prop.innerHTML="三发子弹";
+								arrProp.push(prop);
+								mainDiv.appendChild(prop);
+							}else if(arrdiplne[i].prop<=20&&arrdiplne[i].prop>10){
+								//无敌
+								var	prop = document.createElement("div");
+								prop.style.position="absolute";
+								prop.style.background="red";
+								prop.style.fontSize="12px";
+								prop.type=2;
+								prop.style.left=arrdiplne[i].offsetLeft+arrdiplne[i].offsetWidth/2+"px";
+								prop.style.top=arrdiplne[i].offsetTop+arrdiplne[i].offsetHeight/2+"px";
+								prop.innerHTML="无敌";
+								arrProp.push(prop);
+								mainDiv.appendChild(prop);
+							}else if(arrdiplne[i].prop<=30&&arrdiplne[i].prop>20){
+								//散弹
+								var	prop = document.createElement("div");
+								prop.style.position="absolute";
+								prop.style.background="red";
+								prop.style.fontSize="12px";
+								prop.type=3;
+								prop.style.left=arrdiplne[i].offsetLeft+arrdiplne[i].offsetWidth/2+"px";
+								prop.style.top=arrdiplne[i].offsetTop+arrdiplne[i].offsetHeight/2+"px";
+								prop.innerHTML="散弹";
+								arrProp.push(prop);
+								mainDiv.appendChild(prop);
+							}else if(arrdiplne[i].prop<=40&&arrdiplne[i].prop>30){
+								//全屏炸
+								var	prop = document.createElement("div");
+								prop.style.position="absolute";
+								prop.style.background="red";
+								prop.style.fontSize="12px";
+								prop.type=4;
+								prop.style.left=arrdiplne[i].offsetLeft+arrdiplne[i].offsetWidth/2+"px";
+								prop.style.top=arrdiplne[i].offsetTop+arrdiplne[i].offsetHeight/2+"px";
+								prop.innerHTML="全屏炸";
+								arrProp.push(prop);
+								mainDiv.appendChild(prop);
+							}
+							mainDiv.removeChild(arrdiplne[i]);
+							arrdiplne.splice(i,1);
+							i--;
+						}
+					}
+				}
+			}
+			//创建子弹
+			function createZidan(){
+			if(!zidan33){
+				if(!myisB){
+					zidan = document.createElement("img");
+					zidan.src = "image/bullet1.png";
+					zidan.style.position = "absolute";
+					zidan.className = "zidan";
+					zidan.style.top = myplen.offsetTop-zidan.offsetHeight+"px";
+					zidan.style.left = myplen.offsetLeft+33-zidan.offsetWidth+"px";
+					mainDiv.appendChild(zidan);
+					arrZidan.push(zidan);
+				}
+			}else{
+				if(!myisB){
+					zidanNum--;
+					if(zidanNum<0){
+						zidan33=false;
+						if(zidan333){
+							zidan333=false;
+						}
+						
+						zidanNum=0;
+						
+					}
+				
+					//子弹1
+					zidan1 = document.createElement("img");
+					zidan1.src = "image/bullet1.png";
+					zidan1.style.position = "absolute";
+					zidan1.className = "zidan";
+					zidan1.style.top = myplen.offsetTop-zidan1.offsetHeight+"px";
+					zidan1.style.left = myplen.offsetLeft+33-zidan1.offsetWidth+"px";
+					mainDiv.appendChild(zidan1);
+					
+					arrZidan.push(zidan1);
+					//子弹2
+					zidan2 = document.createElement("img");
+					zidan2.src = "image/bullet1.png";
+					zidan2.style.position = "absolute";
+					zidan2.className = "zidan";
+					zidan2.style.top = myplen.offsetTop-zidan2.offsetHeight+"px";
+					zidan2.style.left = myplen.offsetLeft+24-zidan2.offsetWidth+"px";
+					mainDiv.appendChild(zidan2);
+					arrzidan1.push(zidan2);
+					arrZidan.push(zidan2);
+					//子弹3
+					zidan3 = document.createElement("img");
+					zidan3.src = "image/bullet1.png";
+					zidan3.style.position = "absolute";
+					zidan3.className = "zidan";
+					zidan3.style.top = myplen.offsetTop-zidan3.offsetHeight+"px";
+					zidan3.style.left = myplen.offsetLeft+42-zidan3.offsetWidth+"px";
+					mainDiv.appendChild(zidan3);
+					arrzidan3.push(zidan3);
+					arrZidan.push(zidan3);
+				}
+			}
+				
+				
+			}
+			//子弹起飞
+			function zidanfly(){
+				//给子弹添加name方法1
+				//	var allzidan = document.getElementsByClassName("zidan");
+	
+				//	for(var i=0; i<allzidan.length;i++){
+				//		allzidan[i].style.top = allzidan[i].offsetTop-15+"px";
+				//		if(allzidan[i].offsetTop<-14){
+				//			allzidan[i].remove();
+				//		}
+				//	}
+					//子弹飞数组方法2
+					for(var i=0; i<arrZidan.length;i++){
+						arrZidan[i].style.top = arrZidan[i].offsetTop-10+"px";
+						if(arrZidan[i].offsetTop<-14){
+							mainDiv.removeChild(arrZidan[i]);
+							arrZidan.splice(i,1);
+							i--;
+						}
+						
+					}
+					if(zidan333){
+						for(var i=0;i<arrzidan1.length;i++){
+							arrzidan1[i].style.left = arrzidan1[i].offsetLeft-1+"px";
+						}
+						for(var i=0;i<arrzidan3.length;i++){
+							arrzidan3[i].style.left = arrzidan3[i].offsetLeft+1+"px";
+						}
+					}
+			}
+			//碰撞
+			function crash(){
+				//子弹碰撞
+				for(var i=0; i<arrZidan.length;i++){
+					for(var j=0;j<arrdiplne.length;j++){
+						if(arrdiplne[j].isB) continue;
+						//console.log(arrZidan[i])
+						var offtop=arrZidan[i].offsetTop-arrdiplne[j].offsetTop;
+						if(offtop>-arrZidan[i].offsetHeight&&offtop<arrdiplne[j].offsetHeight){
+							var offleft = arrZidan[i].offsetLeft-arrdiplne[j].offsetLeft;
+							if(offleft>-arrZidan[i].offsetWidth&&offleft<arrdiplne[j].offsetWidth){
+								//子弹消失，敌机爆炸
+                                mainDiv.removeChild(arrZidan[i]);
+                                arrZidan.splice(i,1);
+                                i--;
+								//挨打
+								arrdiplne[j].src=arrdiplne[j].asrc;
+								//碰撞一次life减一
+								arrdiplne[j].life--;
+								
+								//life为0爆炸
+								if(arrdiplne[j].life<=0){
+									arrdiplne[j].src=arrdiplne[j].bsrc;
+									arrdiplne[j].isB=true;
+								}
+								break;	
+								
+								
+							}
+						}
+					
+					}
+				
+				}
+				//我方飞机碰撞
+				if(!god){//不是无敌状态
+					for(var i=0;i<arrdiplne.length;i++){
+						if(arrdiplne[i].isB) continue;
+						var _top=myplen.offsetTop-arrdiplne[i].offsetTop;
+						var _left=myplen.offsetLeft-arrdiplne[i].offsetLeft;
+						if(_top>-myplen.offsetHeight&&_top<arrdiplne[i].offsetHeight&&_left>-myplen.offsetWidth&&_left<arrdiplne[i].offsetWidth){
+							myplen.src="image/本方飞机爆炸.gif";
+							document.onmousemove="";
+							myisB=true;
+							//游戏结束！
+							clearInterval(timer);
+							btover.style.display="block";
+							btagain.style.display="block";
+							//cookie
+							setcookie();
+						}
+					}
+					ogodtime.parentNode.style.color="black";
+				}
+				if(god){//无敌状态
+					godtime--;
+					ogodtime.innerHTML=godtime;
+					ogodtime.parentNode.style.color="red";
+					if(godtime<=0){
+						godtime=0;
+						god=false;
+						
+					}
+					for(var i=0;i<arrdiplne.length;i++){
+						if(arrdiplne[i].isB) continue;
+						var _top=myplen.offsetTop-arrdiplne[i].offsetTop;
+						var _left=myplen.offsetLeft-arrdiplne[i].offsetLeft;
+						if(_top>-myplen.offsetHeight&&_top<arrdiplne[i].offsetHeight&&_left>-myplen.offsetWidth&&_left<arrdiplne[i].offsetWidth){
+							//敌机爆炸
+							arrdiplne[i].src=arrdiplne[i].bsrc;
+							arrdiplne[i].isB=true;
+						}
+					}
+				}
+				//道具与我方飞机碰撞
+				for(var i=0;i<arrProp.length;i++){
+				
+					if(myplen.offsetTop-arrProp[i].offsetTop>-myplen.offsetHeight&&myplen.offsetTop-arrProp[i].offsetTop<arrProp[i].offsetHeight&&myplen.offsetLeft-arrProp[i].offsetLeft>-myplen.offsetWidth&&myplen.offsetLeft-arrProp[i].offsetLeft<arrProp[i].offsetWidth){
+
+						
+						if(arrProp[i].type==1){
+							zidan33=true;
+							zidanNum+=40;
+						}
+						if(arrProp[i].type==2){
+							god=true;
+							godtime+=100;
+						}
+						if(arrProp[i].type==3){
+							zidan33=true;
+							zidanNum+=40;
+							zidan333=true;
+						}
+						if(arrProp[i].type==4){
+							for(var j=0;j<arrdiplne.length;j++){
+								arrdiplne[j].src=arrdiplne[j].bsrc;
+								arrdiplne[j].isB=true;
+							}
+						}
+						arrProp[i].remove();
+						i--;
+					}
+				}
+				
+				
+			}
+			//道具起飞
+			function Prop(){
+				for(var i=0;i<arrProp.length;i++){
+					arrProp[i].style.top=arrProp[i].offsetTop+2+"px";
+					if(arrProp[i].offsetTop>mainDiv.offsetHeight){
+						mainDiv.removeChild(arrProp[i]);
+						arrProp.splice(i,1);
+						i--;
+					}
+				}
+			}
+
+			//得分
+			function Score(){
+				oscore.innerHTML=score;
+			}
+			//cookie最高分
+			function setcookie(){
+				if(score>maxScore){
+					maxScore=score;
+				}
+				var now = new Date();
+				now.setDate(now.getDate()+10);
+				document.cookie = "score="+maxScore+"; expires="+now; 
+			}
+			//获取cookie
+			function getcookie(){
+				var str = document.cookie;
+				var Cookie=str.split("=")[1]||0;
+				return Cookie;
+			}
+			//起飞定时器
+			function fly(){
+				
+				var positiony = 0;
+				var count = 0;
+				clearInterval(timer);
+				timer=setInterval(function(){
+				if(!isPause){
+					count++;
+					//背景图动起来
+					mainDiv.style.backgroundPositionY=positiony+"px";
+					positiony+=1;
+					//创建子弹
+					if(score<3000){
+						if(count%2==0){
+							createZidan();
+						}
+					}else{
+						createZidan();
+					}
+					
+					
+					
+					zidanfly();
+					//创建敌方飞机
+					if(score<1000){
+						if(count%10==0){
+							creatediplen2();
+						}
+					}else if(score>=1000&&score<=3000){
+						if(count%5==0){
+							creatediplen2();
+						}
+					}else{
+						if(count%2==0){
+							creatediplen2();
+						}
+					}
+					
+					
+					
+					
+					//敌方飞机起飞
+					difly();
+					//检测碰撞
+					crash();
+					//得分
+					Score();
+					//道具
+					Prop();
+				}	
+				},50)
+			}
+			
+			
+		}
+	</script>
+</head>
+<body>
+<div id="content">
+    <div id="startdiv">
+        <input id="btstart" type="button" value="开始游戏"/>
+    </div>
+    <div id="maindiv"></div>
+</div>
+<div id="score">得分：<span>0</span></div>
+<input id="btover" type="button" value="游戏结束！"/>
+<input id="btagain" type="button" value="重新开始"/>
+<div id="maxscore">最高分：<span>0</span></div>
+<div id="godtime">无敌时间：<span>0</span></div>
+</body>
+</html>
