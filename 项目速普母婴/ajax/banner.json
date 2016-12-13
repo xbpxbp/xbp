@@ -1,0 +1,9 @@
+{
+	"data":[
+	{"title":"banner","background":"url('images/lun1.jpg') no-repeat center top"},
+	{"title":"banner","background":"url('images/lun2.jpg') no-repeat center top"},
+	{"title":"banner","background":"url('images/lun3.jpg') no-repeat center top"},
+	{"title":"banner","background":"url('images/lun4.jpg') no-repeat center top"}
+	]
+	
+}
